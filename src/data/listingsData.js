@@ -23,3 +23,23 @@ export async function findListingById(id) {
     console.log(listing);
     return listing;
 }
+
+export async function findListingsByType(type) {
+    const db = getDb();
+    const listings = await db.collection("listingsAndReviews").find({property_type: type }).toArray();
+    return listings;
+}
+
+export async function findListingsWithTotalPrice() {
+    const db = getDb();
+    const listings = await db.collection("listingsAndReviews").aggregate([
+        {
+            $addFields : {
+                totalPrice: {
+                    $add : ["$price", { $ifNull: ["$cleaning_fee", 0] }, { $ifNull: ["$security_deposit", 0] }, { $ifNull: ["$extra_people", 0] }]
+                }
+            }
+        }
+    ]).toArray();
+    return listings;
+}
